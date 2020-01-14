@@ -2,6 +2,7 @@ package com.example.chatapp;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
 
+    private Toolbar mToolbar;
     private Button mCreateAccBtn;
     private TextInputLayout mEmail;
     private TextInputLayout mUsername;
@@ -30,6 +32,11 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+        mToolbar = findViewById(R.id.register_activity_toolbar);
+        setSupportActionBar(mToolbar);
+        mToolbar.setTitle("Chat App");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mAuth = FirebaseAuth.getInstance();
 
