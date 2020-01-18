@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/main_users_btn"
-        android:title="@string/all_users" />
+        android:id="@+id/main_settings_btn"
+        android:title="@string/settings" />
 
     <item
         android:id="@+id/main_logout_btn"

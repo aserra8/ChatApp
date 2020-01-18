@@ -17,4 +17,5 @@
     <string name="using_chatapp">Using ChatApp</string>
     <string name="change_image">Change Image</string>
     <string name="change_status">Change Status</string>
+    <string name="settings">Settings</string>
 </resources>

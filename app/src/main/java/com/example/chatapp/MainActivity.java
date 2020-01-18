@@ -79,6 +79,13 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         super.onOptionsItemSelected(item);
 
+        //If item selected equals the settings button
+        if (item.getItemId() == R.id.main_settings_btn) {
+            //Start the settings Activity
+            Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(settingsIntent);
+        }
+
         //If item selected equals the logout button
         if (item.getItemId() == R.id.main_logout_btn) {
             // Log out current user from the application

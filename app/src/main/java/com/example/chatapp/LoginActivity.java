@@ -54,7 +54,7 @@ public class LoginActivity extends AppCompatActivity {
                 String password = mLoginPassword.getEditText().getText().toString();
 
                 //Checks fields are not empty
-                if (!TextUtils.isEmpty(email) && !TextUtils.isEmpty(password)) {
+                if (!TextUtils.isEmpty(email) || !TextUtils.isEmpty(password)) {
                     loginUser(email, password);
                 }
             }

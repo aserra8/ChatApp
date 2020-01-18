@@ -53,26 +53,15 @@
         app:layout_constraintTop_toBottomOf="@+id/settings_display_name" />
 
     <Button
-        android:id="@+id/settings_button_change_image"
+        android:id="@+id/setting_button_change_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="75dp"
         android:background="@drawable/button_border"
-        android:text="@string/change_image"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/settings_display_status" />
-
-    <Button
-        android:id="@+id/setting_button_change_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="25dp"
-        android:background="@drawable/button_border"
         android:text="@string/change_status"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/settings_button_change_image" />
+        app:layout_constraintTop_toBottomOf="@+id/settings_display_status" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
