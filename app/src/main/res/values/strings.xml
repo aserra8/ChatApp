@@ -12,4 +12,9 @@
     <string name="login_acc">Log in to your account</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="profile_picture">Profile picture</string>
+    <string name="display_name">Display Name</string>
+    <string name="using_chatapp">Using ChatApp</string>
+    <string name="change_image">Change Image</string>
+    <string name="change_status">Change Status</string>
 </resources>
