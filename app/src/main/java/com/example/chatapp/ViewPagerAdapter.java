@@ -17,37 +17,31 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         switch (position) {
             case 0:
-                //Initialize and return a request tab fragment
-                return new RequestFragment();
-            case 1:
                 //Initialize and return a chat tab fragment
                 return new ChatFragment();
                 //Initialize and return a friend tab fragment
-            case 2:
-                return new FriendFragment();
+            case 1:
+                return new UsersFragment();
             default:
                 return null;
         }
     }
 
     @Override
-    //Returns 3 since the App will have 3 tabs
+    //Returns 2 since the App will have 2 tabs
     public int getCount() {
-        return 3;
+        return 2;
     }
 
     //Overriden method used to set the page title
     public CharSequence getPageTitle(int position) {
         switch (position) {
             case 0:
-                //Initialize and return a request tab fragment
-                return "REQUESTS";
-            case 1:
                 //Initialize and return a chat tab fragment
                 return "CHATS";
             //Initialize and return a friend tab fragment
-            case 2:
-                return "FRIENDS";
+            case 1:
+                return "USERS";
             default:
                 return null;
         }

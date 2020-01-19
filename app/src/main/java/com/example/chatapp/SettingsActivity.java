@@ -22,8 +22,8 @@ import com.google.firebase.database.ValueEventListener;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private DatabaseReference mDatabaseRef;
     private FirebaseUser mCurrentUser;
+    private DatabaseReference mDatabaseRef;
 
     private TextView mUsername;
     private TextView mStatus;
@@ -51,6 +51,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         //Get the database reference with the child "Users"
         mDatabaseRef = FirebaseDatabase.getInstance().getReference().child("Users").child(UID);
+        //Enable database sync for this activity
+        mDatabaseRef.keepSynced(true);
 
         mDatabaseRef.addValueEventListener(new ValueEventListener() {
             @Override
