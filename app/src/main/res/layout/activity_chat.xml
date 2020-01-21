@@ -15,4 +15,39 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/chat_activity_messages"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/chat_activity_message"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/chat_activity_layout" />
+
+    <EditText
+        android:id="@+id/chat_activity_message"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:autofillHints="Send a message"
+        android:background="@color/white"
+        android:hint="@string/send_a_message"
+        android:inputType="text"
+        android:paddingStart="12sp"
+        android:paddingLeft="12sp"
+        android:paddingRight="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_percent="0.85" />
+
+    <ImageButton
+        android:id="@+id/chat_activity_send"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:background="@android:drawable/ic_menu_send"
+        android:backgroundTint="@color/colorPrimary"
+        android:contentDescription="@string/send_message"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/chat_activity_message" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

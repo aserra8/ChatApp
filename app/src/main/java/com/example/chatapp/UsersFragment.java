@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,16 +16,16 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class UsersFragment extends Fragment {
 
     private View mMainView;
-    private String mCurrentUserID;
     private RecyclerView mUsersList;
-    private FirebaseAuth mFirebaseAuth;
     private DatabaseReference mUsersDatabase;
 
     public UsersFragment() {
@@ -37,11 +38,10 @@ public class UsersFragment extends Fragment {
         mMainView = inflater.inflate(R.layout.fragment_users, container, false);
 
         mUsersList = mMainView.findViewById(R.id.users_list);
-        mFirebaseAuth = FirebaseAuth.getInstance();
 
-        mCurrentUserID = mFirebaseAuth.getCurrentUser().getUid();
         //Retrieve all the users from the database
         mUsersDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
+
         //Enable offline function
         mUsersDatabase.keepSynced(true);
 
@@ -60,33 +60,46 @@ public class UsersFragment extends Fragment {
                         (Users.class, R.layout.user_single_layout, UsersViewHolder.class, mUsersDatabase) {
                     @Override
                     //Method to assign values to the RecycleView items
-                    protected void populateViewHolder(UsersViewHolder usersViewHolder, Users users, int i) {
-                        usersViewHolder.setUsername(users.getName());
-                        usersViewHolder.setStatus(users.getStatus());
-                        final String listUserID = getRef(i).getKey();
+                    protected void populateViewHolder(final UsersViewHolder usersViewHolder, Users users, int i) {
 
-                        usersViewHolder.mView.setOnClickListener(new View.OnClickListener() {
+                        final String listUserID = getRef(i).getKey();
+                        mUsersDatabase.child(listUserID).addValueEventListener(new ValueEventListener() {
                             @Override
-                            public void onClick(View v) {
-                                CharSequence options[]  = new CharSequence[]{"Send message"};
-                                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                                builder.setTitle("Options");
-                                builder.setItems(options, new DialogInterface.OnClickListener() {
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                String username = dataSnapshot.child("name").getValue().toString();
+                                String status = dataSnapshot.child("status").getValue().toString();
+
+                                usersViewHolder.setUsername(username);
+                                usersViewHolder.setStatus(status);
+
+                                usersViewHolder.mView.setOnClickListener(new View.OnClickListener() {
                                     @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        if (which == 0) {
-                                            Intent chatIntent = new Intent(getContext(), ChatActivity.class);
-                                            chatIntent.putExtra("user_id", listUserID);
-                                            startActivity(chatIntent);
-                                        }
+                                    public void onClick(View v) {
+                                        CharSequence options[] = new CharSequence[]{"Send message"};
+                                        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                                        builder.setTitle("Options");
+                                        builder.setItems(options, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                if (which == 0) {
+                                                    Intent chatIntent = new Intent(getContext(), ChatActivity.class);
+                                                    chatIntent.putExtra("user_id", listUserID);
+                                                    startActivity(chatIntent);
+                                                }
+                                            }
+                                        });
+                                        builder.show();
                                     }
                                 });
-                                builder.show();
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
                             }
                         });
                     }
                 };
-
         //Set the Adapter to the RecyclerView
         mUsersList.setAdapter(firebaseRecyclerAdapter);
     }

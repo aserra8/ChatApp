@@ -13,16 +13,17 @@ import android.view.MenuItem;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MainActivity extends AppCompatActivity {
 
-    private FirebaseAuth mAuth;
     private Toolbar mToolbar;
-
-    private ViewPager mViewPager;
-    private ViewPagerAdapter mViewPagerAdapter;
-
+    private FirebaseAuth mAuth;
     private TabLayout mTabLayout;
+    private ViewPager mViewPager;
+    private DatabaseReference mUserUID;
+    private ViewPagerAdapter mViewPagerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +36,11 @@ public class MainActivity extends AppCompatActivity {
         mToolbar = findViewById(R.id.main_activity_toolbar);
         setSupportActionBar(mToolbar);
         mToolbar.setTitle("Chat App");
+
+        if (mAuth.getCurrentUser() != null) {
+            mUserUID = FirebaseDatabase.getInstance().getReference().child("Users").
+                    child(mAuth.getCurrentUser().getUid());
+        }
 
         //Set the app fragments and ViewPager adapter
         mViewPager = findViewById(R.id.main_activity_view_pager);
