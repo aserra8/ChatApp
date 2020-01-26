@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
@@ -16,6 +17,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -23,7 +25,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ChatActivity extends AppCompatActivity {
@@ -31,12 +35,15 @@ public class ChatActivity extends AppCompatActivity {
     private String mUserID;
     private String mUsername;
     private String mCurrentUserID;
+    private final List<Message> messagesList = new ArrayList<>();
 
     private Toolbar mChatToolbar;
     private EditText mMessageText;
     private TextView mUsernameText;
-    private RecyclerView mMessageList;
+    private MessageAdapter mAdapter;
     private ImageButton mSendMessageBtn;
+    private RecyclerView mMessagesList;
+    private LinearLayoutManager mLayoutManager;
 
     private FirebaseAuth mFirebaseAuth;
     private DatabaseReference mUsersDatabase;
@@ -46,22 +53,18 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+        //Initialize the toolbar
         mChatToolbar = findViewById(R.id.chat_activity_layout);
         setSupportActionBar(mChatToolbar);
 
-        final ActionBar actionBar = getSupportActionBar();
+        ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
         //Necessary to add custom view to bar
         actionBar.setDisplayShowCustomEnabled(true);
 
         mUsersDatabase = FirebaseDatabase.getInstance().getReference();
         mFirebaseAuth = FirebaseAuth.getInstance();
-
         mCurrentUserID = mFirebaseAuth.getCurrentUser().getUid();
-
-        mMessageText = findViewById(R.id.chat_activity_message);
-        mSendMessageBtn = findViewById(R.id.chat_activity_send);
-        mMessageList = findViewById(R.id.chat_activity_messages);
 
         //Get the user ID from the Intent
         mUserID = getIntent().getStringExtra("user_id");
@@ -70,6 +73,20 @@ public class ChatActivity extends AppCompatActivity {
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View actionBarView = inflater.inflate(R.layout.chat_toolbar, null);
         actionBar.setCustomView(actionBarView);
+
+        mMessageText = findViewById(R.id.chat_activity_message);
+        mSendMessageBtn = findViewById(R.id.chat_activity_send);
+
+        mAdapter = new MessageAdapter(messagesList);
+
+        mMessagesList = findViewById(R.id.chat_activity_messages);
+        mLayoutManager = new LinearLayoutManager(this);
+
+        mMessagesList.setHasFixedSize(true);
+        mMessagesList.setLayoutManager(mLayoutManager);
+        mMessagesList.setAdapter(mAdapter);
+
+        loadMessages();
 
         mUsersDatabase.child("Users").child(mUserID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -121,10 +138,45 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 
-    private void sendMessage() {
-        String message = mMessageText.getText().toString();
+    //Function to retrieve messages from database and show them through adapter
+    private void loadMessages() {
+        mUsersDatabase.child("Messages").child(mCurrentUserID).child(mUserID).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                //Retrieve the message from the database
+                Message message = dataSnapshot.getValue(Message.class);
 
-        if (!message.isEmpty()) {
+                //Add the message to the list and refresh adapter
+                messagesList.add(message);
+                mAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void sendMessage() {
+        String content = mMessageText.getText().toString();
+
+        if (!content.isEmpty()) {
             String current_user_ref = "Messages/" + mCurrentUserID + "/" + mUserID;
             String chat_user_ref = "Messages/" + mUserID + "/" + mCurrentUserID;
 
@@ -134,11 +186,15 @@ public class ChatActivity extends AppCompatActivity {
             String message_id = user_message_push.getKey();
 
             Map<String, String> messageMap = new HashMap<>();
-            messageMap.put("message_content", message);
+            messageMap.put("content", content);
+            messageMap.put("from", mCurrentUserID);
 
             Map messageUserMap = new HashMap();
             messageUserMap.put(current_user_ref + "/" + message_id, messageMap);
             messageUserMap.put(chat_user_ref + "/" + message_id, messageMap);
+
+            //Set the writing bar to blank
+            mMessageText.setText("");
 
             mUsersDatabase.updateChildren(messageUserMap, new DatabaseReference.CompletionListener() {
                 @Override

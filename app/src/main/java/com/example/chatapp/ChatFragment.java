@@ -2,63 +2,134 @@ package com.example.chatapp;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.renderscript.Sampler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ChatFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+
 public class ChatFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private View mMainView;
+    private RecyclerView mConvList;
+    private String mCurrentUserID;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private FirebaseAuth mFirebaseAuth;
+    private DatabaseReference mConvDatabase;
+    private DatabaseReference mUsersDatabase;
+    private DatabaseReference mMessageDatabase;
 
     public ChatFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ChatFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ChatFragment newInstance(String param1, String param2) {
-        ChatFragment fragment = new ChatFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        mMainView = inflater.inflate(R.layout.fragment_chat, container, false);
+
+        mConvList = mMainView.findViewById(R.id.fragment_messages_list);
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mCurrentUserID = mFirebaseAuth.getCurrentUser().getUid();
+
+        mConvDatabase = FirebaseDatabase.getInstance().getReference().child("Chat").child(mCurrentUserID);
+        mConvDatabase.keepSynced(true);
+
+        mUsersDatabase = FirebaseDatabase.getInstance().getReference().child("Users");
+        mMessageDatabase = FirebaseDatabase.getInstance().getReference().child("Messages").child(mCurrentUserID);
+        mUsersDatabase.keepSynced(true);
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        linearLayoutManager.setReverseLayout(true);
+        linearLayoutManager.setStackFromEnd(true);
+
+        mConvList.setHasFixedSize(true);
+        mConvList.setLayoutManager(linearLayoutManager);
+
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_chat, container, false);
+        return mMainView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        FirebaseRecyclerAdapter<Users, ChatViewHolder> firebaseRecyclerAdapter =
+                new FirebaseRecyclerAdapter<Users, ChatViewHolder>
+                        (Users.class, R.layout.user_single_layout, ChatViewHolder.class, mUsersDatabase) {
+
+                    @Override
+                    protected void populateViewHolder(final ChatViewHolder chatViewHolder, Users users, int i) {
+
+                        final String list_user_id = getRef(i).getKey();
+                        Query lastMessageQuery = mMessageDatabase.child(list_user_id).limitToLast(1);
+
+                        lastMessageQuery.addChildEventListener(new ChildEventListener() {
+                            @Override
+                            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                                String lastMessage = dataSnapshot.child("Messages").getValue().toString();
+                                chatViewHolder.setLastMessage(lastMessage);
+                            }
+                            @Override
+                            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+                            @Override
+                            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
+                            @Override
+                            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {}
+                        });
+
+                        mUsersDatabase.child(list_user_id).addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                final String username = dataSnapshot.child("name").getValue().toString();
+                                chatViewHolder.setUsername(username);
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                };
+    }
+
+    public static class ChatViewHolder extends RecyclerView.ViewHolder {
+
+        View mView;
+
+        public ChatViewHolder(View itemView) {
+            super(itemView);
+            mView = itemView;
+        }
+
+        //Set the username to the TextView
+        public void setUsername(String username) {
+            TextView mUsername = mView.findViewById(R.id.user_single_name);
+            mUsername.setText(username);
+        }
+
+        //Set the username to the TextView
+        public void setLastMessage(String lastMessage) {
+            TextView mLastMessage = mView.findViewById(R.id.user_single_status);
+            mLastMessage.setText(lastMessage);
+        }
     }
 }
